@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeftIcon, PrinterIcon } from "@phosphor-icons/react";
@@ -34,8 +34,9 @@ function SummaryInner() {
   const from = addDays(today, -(days - 1));
   const stats = computeStats(state, from, today, now);
   const prev = computeStats(state, addDays(from, -days), addDays(from, -1), now);
-  // Only compare when the previous period has nearly as much data, or a short history makes the change meaningless.
-  const delta = prev.scheduled >= stats.scheduled * 0.8 ? Math.round((stats.rate - prev.rate) * 100) : null;
+  // Only compare when logging had already started by the previous period; before that every dose looks "missed".
+  const firstLog = state.doseLogs.reduce((min, l) => (l.date < min ? l.date : min), today);
+  const delta = firstLog <= addDays(from, -days) ? Math.round((stats.rate - prev.rate) * 100) : null;
   const fromIso = new Date(`${from}T00:00:00`).toISOString();
   const nowIso = now.toISOString();
   const p = state.patient;
@@ -52,34 +53,28 @@ function SummaryInner() {
   const activeMeds = state.meds.filter((m) => m.active);
 
   return (
-    <div className="min-h-dvh py-6 print:py-0">
-      <div className="no-print mx-auto mb-4 flex max-w-[210mm] flex-wrap items-center gap-2 px-4">
-        <Link href="/family" className="press flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-ink-2 hover:bg-paper">
-          <ArrowLeftIcon size={15} aria-hidden /> Family app
-        </Link>
-        <div className="ml-auto flex rounded-full bg-[#eef1f4] p-0.5 text-sm" role="radiogroup" aria-label="Period">
-          {PERIODS.map((d) => (
-            <button
-              key={d}
-              role="radio"
-              aria-checked={d === days}
-              onClick={() => router.replace(`/summary?days=${d}`)}
-              className={`rounded-full px-3 py-1.5 transition-colors duration-200 ${d === days ? "bg-paper font-semibold shadow-[0_1px_2px_rgb(30_39_48/0.08)]" : "text-ink-2"}`}
-            >
-              {d / 7} weeks
-            </button>
-          ))}
-        </div>
-        <button onClick={() => window.print()} className="press flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
-          <PrinterIcon size={16} aria-hidden /> Print or save PDF
-        </button>
-      </div>
-
-      {/* A4 sheet */}
-      <article
-        className="mx-auto flex max-w-[210mm] flex-col gap-6 rounded-[24px] bg-white px-[13mm] py-[12mm] text-[13px] leading-normal text-ink shadow-[0_24px_60px_-30px_rgb(30_39_48/0.25)] print:max-w-none print:rounded-none print:p-0 print:shadow-none"
-        style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}
-      >
+    <PaperPreview
+      actions={
+        <>
+          <div className="flex rounded-full bg-[#eef1f4] p-0.5 text-sm" role="radiogroup" aria-label="Period">
+            {PERIODS.map((d) => (
+              <button
+                key={d}
+                role="radio"
+                aria-checked={d === days}
+                onClick={() => router.replace(`/summary?days=${d}`)}
+                className={`rounded-full px-3 py-1.5 transition-colors duration-200 ${d === days ? "bg-paper font-semibold shadow-[0_1px_2px_rgb(30_39_48/0.08)]" : "text-ink-2"}`}
+              >
+                {d / 7} weeks
+              </button>
+            ))}
+          </div>
+          <button onClick={() => window.print()} className="press flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
+            <PrinterIcon size={16} aria-hidden /> Print or save PDF
+          </button>
+        </>
+      }
+    >
         <header className="flex items-start justify-between gap-6">
           <div className="flex flex-col gap-1">
             <span className="self-start rounded-full bg-hearth-soft px-2.5 py-0.5 text-[11.5px] font-semibold text-hearth-ink">HearthCare home medication report</span>
@@ -124,7 +119,7 @@ function SummaryInner() {
 
         <section className="flex flex-col gap-2">
           <h2 className="text-[15px] font-semibold">Worth discussing</h2>
-          <ol className="flex list-decimal flex-col gap-1 pl-5 text-[#2e3842]">
+          <ol className="flex list-decimal flex-col gap-0.5 pl-5 text-[#2e3842]">
             {stats.patterns.map((x) => (
               <li key={x}>{x}.</li>
             ))}
@@ -160,7 +155,7 @@ function SummaryInner() {
               <p className="text-ink-3">None reported.</p>
             ) : (
               <ul className="flex flex-col gap-2 text-[#2e3842]">
-                {notes.slice(0, 6).map((n) => (
+                {notes.slice(0, 4).map((n) => (
                   <li key={n.id} className="flex gap-3">
                     <span className="w-12 shrink-0 tabular-nums text-ink-3">{fmtDate(toDateStr(new Date(n.at)))}</span>
                     <span>
@@ -195,16 +190,109 @@ function SummaryInner() {
           Reported by the patient and family through HearthCare reminders. Not a clinical record, and HearthCare does not diagnose or give
           medical advice. &quot;Taken&quot; means the patient or a family member confirmed the dose.
         </footer>
-      </article>
+    </PaperPreview>
+  );
+}
+
+// A4 at 96 dpi, with the same 12 mm margin the print stylesheet uses, so the screen matches the PDF.
+const PAGE_W = 794;
+const PAGE_H = 1123;
+const MARGIN = 45;
+
+/** Shows the report as an A4 page in a PDF-style viewer, scaled to fit the screen. */
+function PaperPreview({ actions, children }: { actions: React.ReactNode; children: React.ReactNode }) {
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState<"fit" | "actual">("fit");
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  const [pages, setPages] = useState(1);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const content = contentRef.current;
+    if (!viewer || !content) return;
+    const ro = new ResizeObserver(() => {
+      setBox({ w: viewer.clientWidth, h: viewer.clientHeight });
+      // A couple of pixels of slack so sub-pixel rounding never adds an empty page.
+      setPages(Math.max(1, Math.ceil((content.offsetHeight + MARGIN * 2 - 2) / PAGE_H)));
+    });
+    ro.observe(viewer);
+    ro.observe(content);
+    return () => ro.disconnect();
+  }, []);
+
+  const fit = box.w ? Math.min(1, (box.w - 32) / PAGE_W, (box.h - 32) / PAGE_H) : 0;
+  const scale = zoom === "actual" ? 1 : fit;
+
+  return (
+    <div className="flex h-dvh flex-col print:block print:h-auto">
+      <div className="no-print flex flex-wrap items-center gap-2 px-4 py-3 shadow-[inset_0_-1px_0_rgb(30_39_48/0.06)]">
+        <Link href="/family" className="press flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-ink-2 hover:bg-paper">
+          <ArrowLeftIcon size={15} aria-hidden /> Family app
+        </Link>
+        <span className="text-sm text-ink-3">
+          A4, {pages} page{pages === 1 ? "" : "s"}
+        </span>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <div className="flex rounded-full bg-[#eef1f4] p-0.5 text-sm" role="radiogroup" aria-label="Zoom">
+            {(
+              [
+                ["fit", "Fit page"],
+                ["actual", "100%"],
+              ] as const
+            ).map(([z, label]) => (
+              <button
+                key={z}
+                role="radio"
+                aria-checked={zoom === z}
+                onClick={() => setZoom(z)}
+                className={`rounded-full px-3 py-1.5 transition-colors duration-200 ${zoom === z ? "bg-paper font-semibold shadow-[0_1px_2px_rgb(30_39_48/0.08)]" : "text-ink-2"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {actions}
+        </div>
+      </div>
+
+      <div ref={viewerRef} className="flex-1 overflow-auto bg-[#e3e7eb] p-4 print:overflow-visible print:bg-white print:p-0">
+        {/* The sized box reserves the scaled page's footprint; the page itself is drawn at full A4 size and scaled. */}
+        <div
+          className="relative mx-auto print:!h-auto print:!w-auto"
+          style={{ width: PAGE_W * scale, height: pages * PAGE_H * scale, visibility: scale ? "visible" : "hidden" }}
+        >
+          <article
+            className="absolute left-0 top-0 bg-white text-[13px] leading-normal text-ink shadow-[0_2px_6px_rgb(30_39_48/0.12),0_20px_50px_-24px_rgb(30_39_48/0.35)] print:static print:!h-auto print:!w-auto print:!p-0 print:shadow-none print:![transform:none]"
+            style={{
+              width: PAGE_W,
+              height: pages * PAGE_H,
+              padding: MARGIN,
+              transform: `scale(${scale})`,
+              transformOrigin: "top left",
+              WebkitPrintColorAdjust: "exact",
+              printColorAdjust: "exact",
+            }}
+          >
+            <div ref={contentRef} className="flex flex-col gap-4 print:!min-h-0" style={{ minHeight: PAGE_H - MARGIN * 2 }}>
+              {children}
+            </div>
+            {/* Where the printer will start a new page, if the report runs long */}
+            {Array.from({ length: pages - 1 }, (_, i) => (
+              <div key={i} aria-hidden className="no-print absolute inset-x-0 h-3 -translate-y-1/2 bg-[#e3e7eb]" style={{ top: (i + 1) * PAGE_H }} />
+            ))}
+          </article>
+        </div>
+      </div>
     </div>
   );
 }
 
 function Stat({ label, value, children }: { label: string; value: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-0.5 rounded-[17px] bg-white px-[18px] py-4 shadow-[0_1px_2px_rgb(30_39_48/0.04)]">
+    <div className="flex flex-col gap-0.5 rounded-[17px] bg-white px-4 py-3 shadow-[0_1px_2px_rgb(30_39_48/0.04)]">
       <span className="text-xs text-ink-2">{label}</span>
-      <span className="text-[34px] font-semibold leading-tight tracking-[-0.02em] tabular-nums">{value}</span>
+      <span className="text-[30px] font-semibold leading-tight tracking-[-0.02em] tabular-nums">{value}</span>
       <span className="text-xs text-ink-2">{children}</span>
     </div>
   );
@@ -303,7 +391,7 @@ function BpChart({ readings }: { readings: { at: string; sys: number; dia: numbe
         role="img"
         aria-label={`Systolic readings from ${Math.min(...sysVals)} to ${Math.max(...sysVals)}; ${above} of ${readings.length} above the 130 target`}
         width="100%"
-        height="108"
+        height="96"
         viewBox={`-30 -8 ${W + 40} ${H + 28}`}
         preserveAspectRatio="none"
         className="block"
