@@ -93,7 +93,7 @@ function Phone({ label, src, controls }: { label: string; src: string; controls?
         {controls}
       </div>
       <div className="h-[740px] w-[360px] overflow-hidden rounded-[2.5rem] border-[10px] border-black bg-black shadow-2xl">
-        <iframe src={src} className="h-full w-full rounded-[1.8rem] bg-cream" title={label} />
+        <iframe src={src} className="h-full w-full rounded-[1.8rem] bg-ground" title={label} />
       </div>
     </div>
   );

@@ -191,7 +191,7 @@ function SummaryInner() {
         </div>
 
         {/* Questions */}
-        <section className="mt-4 rounded-lg border border-line bg-cream/60 p-3 print:bg-transparent">
+        <section className="mt-4 rounded-lg border border-line bg-ground/60 p-3 print:bg-transparent">
           <h2 className="mb-1 text-[11px] font-bold uppercase tracking-wide text-ink-3">Family&apos;s questions</h2>
           {state.questions.length ? (
             <ol className="list-decimal space-y-0.5 pl-5">

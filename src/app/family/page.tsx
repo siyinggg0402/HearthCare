@@ -39,7 +39,7 @@ function FamilyInner() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-md pb-24">
-      <header className="sticky top-0 z-20 border-b border-line bg-cream/95 px-4 pb-3 pt-4 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-line bg-ground/95 px-4 pb-3 pt-4 backdrop-blur">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-xs uppercase tracking-wide text-ink-3">{embed ? "HearthCare" : <Link href="/">HearthCare</Link>} · Family</div>

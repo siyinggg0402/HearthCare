@@ -38,6 +38,7 @@ export function buildSeed(now = new Date()): HearthState {
         times: ["08:00", "20:00"],
         stock: { count: 120, asOf: start },
         active: true,
+        appearance: { shape: "oval", color: "#ffffff" },
       },
       {
         id: "amlodipine",
@@ -49,6 +50,7 @@ export function buildSeed(now = new Date()): HearthState {
         times: ["08:00"],
         stock: { count: 47, asOf: start },
         active: true,
+        appearance: { shape: "round", color: "#f6e1b8" },
       },
       {
         id: "atorvastatin",
@@ -60,12 +62,13 @@ export function buildSeed(now = new Date()): HearthState {
         times: ["20:00"],
         stock: { count: 90, asOf: start },
         active: true,
+        appearance: { shape: "capsule", color: "#f4d4cc", color2: "#ffffff" },
       },
     ],
     members: [
-      { id: "wm", name: "Wei Ming", relation: "Son", phone: "+65 9000 0001", color: "#c2410c" },
-      { id: "ml", name: "Mei Ling", relation: "Daughter", phone: "+65 9000 0002", color: "#0f766e" },
-      { id: "jh", name: "Jun Hao", relation: "Son", phone: "+65 9000 0003", color: "#4338ca" },
+      { id: "wm", name: "Wei Ming", relation: "Son", phone: "+65 9000 0001", color: "#5a7397" },
+      { id: "ml", name: "Mei Ling", relation: "Daughter", phone: "+65 9000 0002", color: "#3e7c76" },
+      { id: "jh", name: "Jun Hao", relation: "Son", phone: "+65 9000 0003", color: "#7a6ba8" },
     ],
     roster: { order: ["wm", "ml", "jh"], mode: "weekly", anchor: mondayOf(today), overrides: {} },
     doseLogs: [],

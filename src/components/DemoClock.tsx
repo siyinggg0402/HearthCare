@@ -40,16 +40,16 @@ export function DemoClock({ inline = false }: { inline?: boolean }) {
       </div>
       <div className="flex flex-wrap gap-1.5">
         {presets.map(([label, d]) => (
-          <button key={label} onClick={() => jump(d)} className="rounded-lg bg-cream px-2.5 py-1 font-medium hover:bg-hearth-soft">
+          <button key={label} onClick={() => jump(d)} className="rounded-lg bg-ground px-2.5 py-1 font-medium hover:bg-hearth-soft">
             {label}
           </button>
         ))}
-        <button onClick={() => jump(addMinutes(now, 15))} className="rounded-lg bg-cream px-2.5 py-1 font-medium hover:bg-hearth-soft">
+        <button onClick={() => jump(addMinutes(now, 15))} className="rounded-lg bg-ground px-2.5 py-1 font-medium hover:bg-hearth-soft">
           +15 min
         </button>
         <button
           onClick={() => jump(at(addDays(today, 1), "07:55"))}
-          className="rounded-lg bg-cream px-2.5 py-1 font-medium hover:bg-hearth-soft"
+          className="rounded-lg bg-ground px-2.5 py-1 font-medium hover:bg-hearth-soft"
         >
           Next day
         </button>
@@ -57,7 +57,7 @@ export function DemoClock({ inline = false }: { inline?: boolean }) {
       <div className="mt-2 flex gap-1.5 border-t border-line pt-2">
         <button
           onClick={() => act({ type: "setClock", clock: { mode: "real" } })}
-          className="rounded-lg px-2.5 py-1 text-ink-2 hover:bg-cream"
+          className="rounded-lg px-2.5 py-1 text-ink-2 hover:bg-ground"
         >
           Use real time
         </button>

@@ -45,5 +45,12 @@ function migrate(s: HearthState): HearthState {
   s.calls ??= [];
   s.callAfterMin ??= 15;
   s.patient.reminderChannel ??= "whatsapp_voice";
+  // Pill looks and the softer avatar palette arrived with the redesign.
+  const seed = buildSeed();
+  for (const m of s.meds) m.appearance ??= seed.meds.find((x) => x.id === m.id)?.appearance;
+  for (const m of s.members) {
+    const fresh = seed.members.find((x) => x.id === m.id);
+    if (fresh && ["#c2410c", "#0f766e", "#4338ca"].includes(m.color)) m.color = fresh.color;
+  }
   return s;
 }

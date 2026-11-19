@@ -222,7 +222,7 @@ export function ElderPhone({ state, askSound = true }: { state: HearthState; ask
                       await confirmSlot(slot, "skipped", r);
                       setToast(t("noted", lang));
                     }}
-                    className="rounded-2xl bg-cream py-3 text-lg font-semibold"
+                    className="rounded-2xl bg-ground py-3 text-lg font-semibold"
                   >
                     {SKIP_REASONS[r][lang]}
                   </button>

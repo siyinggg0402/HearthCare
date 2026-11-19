@@ -104,7 +104,7 @@ function ElderInner() {
                   <button
                     key={tr.label}
                     onClick={() => jump(tr.at)}
-                    className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-left font-medium ${now >= tr.at ? "bg-cream text-ink-3" : "bg-hearth-soft text-ink hover:bg-hearth/20"}`}
+                    className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-left font-medium ${now >= tr.at ? "bg-ground text-ink-3" : "bg-hearth-soft text-ink hover:bg-hearth/20"}`}
                   >
                     <span>{tr.label}</span>
                     <span className="tabular-nums">{fmtClock(tr.at)}</span>

@@ -74,7 +74,7 @@ export function RosterTab({ state, me }: { state: HearthState; me: FamilyMember 
                   <span className="w-24 text-sm text-ink-2">{relativeDay(d, today)}</span>
                   <Avatar member={m} size={26} />
                   <span className="flex-1 font-medium">{m?.name}</span>
-                  {swapped && <span className="rounded-full bg-cream px-2 py-0.5 text-xs text-ink-2">swapped</span>}
+                  {swapped && <span className="rounded-full bg-ground px-2 py-0.5 text-xs text-ink-2">swapped</span>}
                   {!past && <span className="text-xs text-ink-3">Swap ›</span>}
                 </button>
               </li>
