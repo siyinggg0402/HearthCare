@@ -229,13 +229,13 @@ function DoseCard({ slot, lang, onTaken, onLater, onSkip }: { slot: Slot; lang: 
           <Bi k={meds.length > 1 ? "tookThem" : "tookIt"} lang={lang} className="items-start text-[30px] font-bold" subClassName="!font-medium" />
         </button>
         <div className="grid grid-cols-2 gap-3">
-          <button onClick={onLater} className="press flex h-[72px] items-center justify-center gap-2.5 rounded-full bg-[#f3f5f7] shadow-hairline">
-            <ClockIcon size={24} weight="bold" aria-hidden />
-            <Bi k="later" lang={lang} className="items-start text-[23px] font-semibold" subClassName="text-ink-2" />
+          <button onClick={onLater} className="press flex h-[72px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[#f3f5f7] px-3 shadow-hairline">
+            <ClockIcon size={22} weight="bold" aria-hidden className="shrink-0" />
+            <Bi k="later" lang={lang} className="items-start text-[21px] font-semibold" subClassName="text-ink-2" />
           </button>
-          <button onClick={onSkip} className="press flex h-[72px] items-center justify-center gap-2.5 rounded-full bg-[#f3f5f7] shadow-hairline">
-            <XIcon size={24} weight="bold" aria-hidden />
-            <Bi k="skipped" lang={lang} className="items-start text-[23px] font-semibold" subClassName="text-ink-2" />
+          <button onClick={onSkip} className="press flex h-[72px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[#f3f5f7] px-3 shadow-hairline">
+            <XIcon size={22} weight="bold" aria-hidden className="shrink-0" />
+            <Bi k="skipped" lang={lang} className="items-start text-[21px] font-semibold" subClassName="text-ink-2" />
           </button>
         </div>
       </div>

@@ -288,13 +288,13 @@ function EscalationCard({ slot, state, me }: { slot: Slot; state: HearthState; m
                 <PhoneIcon size={20} weight="bold" />
               </span>
             </a>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 [&>button]:whitespace-nowrap">
               <button onClick={() => quick("already_taken")} className={`${btnGhost} !py-3 text-sm`}>
                 She already took it
               </button>
               {nextUp ? (
                 <button onClick={() => quick("no_answer")} className={`${btnGhost} !py-3 text-sm`}>
-                  Pass to {nextUp.name.split(" ")[0]}
+                  Pass to {nextUp.name}
                 </button>
               ) : (
                 <button onClick={() => setOpen(true)} className={`${btnGhost} !py-3 text-sm`}>

@@ -34,7 +34,8 @@ function SummaryInner() {
   const from = addDays(today, -(days - 1));
   const stats = computeStats(state, from, today, now);
   const prev = computeStats(state, addDays(from, -days), addDays(from, -1), now);
-  const delta = prev.scheduled > 0 ? Math.round((stats.rate - prev.rate) * 100) : null;
+  // Only compare when the previous period has nearly as much data, or a short history makes the change meaningless.
+  const delta = prev.scheduled >= stats.scheduled * 0.8 ? Math.round((stats.rate - prev.rate) * 100) : null;
   const fromIso = new Date(`${from}T00:00:00`).toISOString();
   const nowIso = now.toISOString();
   const p = state.patient;
