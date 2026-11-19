@@ -9,6 +9,20 @@ import { playDing, playRing, speak, stopSpeaking, unlockAudio } from "@/lib/soun
 import { PatientWhatsApp } from "./PatientWhatsApp";
 import { openMeds, REASON_KEYS, slotTitleKey } from "./shared";
 import type { HearthState, Lang } from "@/lib/types";
+import {
+  ArrowsClockwiseIcon,
+  CheckIcon,
+  ClockIcon,
+  FireIcon,
+  ImageIcon,
+  PhoneDisconnectIcon,
+  PhoneIcon,
+  PillIcon,
+  SpeakerHighIcon,
+  UsersThreeIcon,
+  WhatsappLogoIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 
 type CallPhase = "menu" | "reason" | "ending";
 
@@ -140,8 +154,9 @@ export function ElderPhone({ state, askSound = true }: { state: HearthState; ask
   };
 
   // ----- Render -----
+  const notifBtn = "press flex items-center justify-center gap-1.5 rounded-full py-3 text-lg font-semibold";
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#1c1512] text-white select-none">
+    <div className="relative h-full w-full select-none overflow-hidden bg-ground text-ink">
       {screen === "whatsapp" && !call && !ringing ? (
         <div className="h-full text-ink">
           <PatientWhatsApp state={state} fill onBack={() => setScreen("home")} />
@@ -161,7 +176,7 @@ export function ElderPhone({ state, askSound = true }: { state: HearthState; ask
 
       {/* WhatsApp notification pop-up */}
       {showNotif && slot && (
-        <div className="absolute inset-x-2 top-9 z-20 animate-[drop_0.35s_ease-out] rounded-3xl bg-white/95 p-3 text-ink shadow-2xl backdrop-blur">
+        <div className="absolute inset-x-2 top-9 z-20 animate-[drop_0.35s_cubic-bezier(0.23,1,0.32,1)] rounded-[28px] bg-white/90 p-3.5 text-ink shadow-[0_20px_50px_-20px_rgb(30_39_48/0.35)] backdrop-blur-xl">
           <button
             className="flex w-full items-start gap-3 text-left"
             onClick={() => {
@@ -172,15 +187,15 @@ export function ElderPhone({ state, askSound = true }: { state: HearthState; ask
             <WaIcon size={40} />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between text-xs text-ink-3">
-                <span className="font-semibold uppercase tracking-wide">WhatsApp</span>
+                <span className="font-semibold">WhatsApp</span>
                 <span>{lang === "zh" ? "现在" : "now"}</span>
               </div>
-              <div className="text-lg font-semibold leading-tight">HearthCare ✓</div>
+              <div className="text-lg font-semibold leading-tight">HearthCare</div>
               <div className="text-lg leading-snug">
                 {t(slotTitleKey(slot), lang)}：{openMeds(slot).map((m) => medName(m, lang)).join(" + ")}。{t("takenQ", lang)}
               </div>
               {lang !== "en" && (
-                <div className="text-xs italic text-ink-3">
+                <div className="text-sm text-ink-2">
                   {t(slotTitleKey(slot), "en")}: {openMeds(slot).map((m) => m.name).join(" + ")}. Taken?
                 </div>
               )}
@@ -193,26 +208,26 @@ export function ElderPhone({ state, askSound = true }: { state: HearthState; ask
                   await confirmSlot(slot, "taken");
                   setToast(t("thanks", lang));
                 }}
-                className="rounded-2xl bg-ok py-3 text-lg font-bold text-white"
+                className={`${notifBtn} bg-hearth text-white`}
               >
-                ✓ {t("taken", lang)}
+                <CheckIcon size={18} weight="bold" aria-hidden /> {t("taken", lang)}
               </button>
               <button
                 onClick={async () => {
                   await act({ type: "snooze", date: slot.date, time: slot.time });
                   setToast(t("remindAgain", lang));
                 }}
-                className="rounded-2xl bg-warn-soft py-3 text-lg font-bold text-warn"
+                className={`${notifBtn} bg-[#f3f5f7] shadow-hairline`}
               >
-                ⏰ {t("later", lang)}
+                <ClockIcon size={18} weight="bold" aria-hidden /> {t("later", lang)}
               </button>
-              <button onClick={() => setNotifReason(true)} className="rounded-2xl bg-bad-soft py-3 text-lg font-bold text-bad">
-                ✗ {t("skipped", lang)}
+              <button onClick={() => setNotifReason(true)} className={`${notifBtn} bg-[#f3f5f7] shadow-hairline`}>
+                <XIcon size={18} weight="bold" aria-hidden /> {t("skipped", lang)}
               </button>
             </div>
           ) : (
             <div className="mt-3">
-              <div className="mb-2 text-base font-semibold">{t("whySkipped", lang)}</div>
+              <div className="mb-2 px-1 text-base font-semibold">{t("whySkipped", lang)}</div>
               <div className="grid grid-cols-2 gap-2">
                 {REASON_KEYS.map((r) => (
                   <button
@@ -222,7 +237,7 @@ export function ElderPhone({ state, askSound = true }: { state: HearthState; ask
                       await confirmSlot(slot, "skipped", r);
                       setToast(t("noted", lang));
                     }}
-                    className="rounded-2xl bg-cream py-3 text-lg font-semibold"
+                    className={`${notifBtn} bg-[#f3f5f7] shadow-hairline`}
                   >
                     {SKIP_REASONS[r][lang]}
                   </button>
@@ -235,33 +250,35 @@ export function ElderPhone({ state, askSound = true }: { state: HearthState; ask
 
       {/* Incoming voice call */}
       {ringing && slot && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center bg-gradient-to-b from-[#3b2a20] to-[#120d0a] px-6 pb-14 pt-20">
-          <div className="text-lg opacity-80">{lang === "zh" ? "语音来电…" : "Incoming voice call…"}</div>
+        <div className="absolute inset-0 z-30 flex flex-col items-center bg-gradient-to-b from-[#34414d] to-[#161c22] px-6 pb-14 pt-20 text-white">
+          <div className="text-lg text-white/80">{lang === "zh" ? "语音来电…" : "Incoming voice call…"}</div>
           <div className="relative mt-10 flex h-36 w-36 items-center justify-center">
-            <span className="absolute inset-0 animate-ping rounded-full bg-hearth/40" />
-            <span className="relative flex h-32 w-32 items-center justify-center rounded-full bg-hearth text-6xl">🔥</span>
+            <span className="absolute inset-0 animate-ping rounded-full bg-hearth/30 motion-reduce:animate-none" />
+            <span className="relative flex h-32 w-32 items-center justify-center rounded-full bg-hearth shadow-[0_20px_40px_-16px_rgb(194_85_58/0.7)]">
+              <FireIcon size={60} weight="fill" aria-hidden />
+            </span>
           </div>
-          <div className="mt-8 text-3xl font-bold">HearthCare</div>
-          <div className="mt-1 text-2xl opacity-90">{lang === "zh" ? "吃药提醒" : "Medicine reminder"}</div>
-          {lang !== "en" && <div className="text-sm opacity-60">Medicine reminder</div>}
+          <div className="mt-8 text-3xl font-semibold">HearthCare</div>
+          <div className="mt-1 text-2xl text-white/90">{lang === "zh" ? "吃药提醒" : "Medicine reminder"}</div>
+          {lang !== "en" && <div className="text-base text-white/70">Medicine reminder</div>}
           <div className="mt-auto flex w-full justify-between px-4">
             <div className="flex flex-col items-center gap-2">
               <button
                 onClick={() => act({ type: "logCall", date: slot.date, time: slot.time, result: "declined" })}
-                className="flex h-20 w-20 items-center justify-center rounded-full bg-bad text-4xl"
+                className="press flex h-20 w-20 items-center justify-center rounded-full bg-bad"
                 aria-label="Decline"
               >
-                <span className="rotate-[135deg]">📞</span>
+                <PhoneDisconnectIcon size={36} weight="fill" aria-hidden />
               </button>
               <span className="text-lg">{lang === "zh" ? "拒绝" : "Decline"}</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <button
                 onClick={acceptCall}
-                className="flex h-20 w-20 animate-bounce items-center justify-center rounded-full bg-ok text-4xl"
+                className="press flex h-20 w-20 animate-bounce items-center justify-center rounded-full bg-ok motion-reduce:animate-none"
                 aria-label="Answer"
               >
-                📞
+                <PhoneIcon size={36} weight="fill" aria-hidden />
               </button>
               <span className="text-lg">{lang === "zh" ? "接听" : "Answer"}</span>
             </div>
@@ -285,7 +302,10 @@ export function ElderPhone({ state, askSound = true }: { state: HearthState; ask
       )}
 
       {toast && !call && (
-        <div className="absolute inset-x-4 bottom-10 z-20 rounded-2xl bg-ok px-4 py-4 text-center text-xl font-semibold text-white shadow-xl">
+        <div className="enter absolute inset-x-4 bottom-10 z-20 flex items-center gap-3 rounded-[24px] bg-paper px-4 py-4 text-xl font-semibold shadow-[0_20px_50px_-20px_rgb(30_39_48/0.35)]">
+          <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ok-soft text-ok">
+            <CheckIcon size={22} weight="bold" />
+          </span>
           {toast}
         </div>
       )}
@@ -297,11 +317,13 @@ export function ElderPhone({ state, askSound = true }: { state: HearthState; ask
             unlockAudio();
             setSoundOn(true);
           }}
-          className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-black/70 text-center backdrop-blur-sm"
+          className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-ink/55 text-center text-white backdrop-blur-sm"
         >
-          <span className="text-6xl">🔊</span>
-          <span className="text-2xl font-bold">{lang === "zh" ? "点一下开启声音" : "Tap to turn on sound"}</span>
-          {lang !== "en" && <span className="text-base opacity-70">Tap to turn on sound</span>}
+          <span aria-hidden className="flex h-24 w-24 items-center justify-center rounded-full bg-white/15">
+            <SpeakerHighIcon size={48} weight="bold" />
+          </span>
+          <span className="text-2xl font-semibold">{lang === "zh" ? "点一下开启声音" : "Tap to turn on sound"}</span>
+          {lang !== "en" && <span className="text-base text-white/80">Tap to turn on sound</span>}
         </button>
       )}
 
@@ -325,53 +347,68 @@ function HomeScreen({
 }) {
   const next = nextSlot(state, now);
   return (
-    <div className="flex h-full flex-col bg-gradient-to-b from-[#7c2d12] via-[#9a3412] to-[#431407] px-5 pb-8 pt-3">
-      <div className="flex justify-between text-sm font-semibold">
-        <span>
-          {pad(now.getHours())}:{pad(now.getMinutes())}
-        </span>
-        <span>📶 🔋</span>
+    <div className="flex h-full flex-col bg-[radial-gradient(130%_70%_at_20%_0%,#ffffff_0%,#e9eef3_55%,#f3ece8_100%)] px-5 pb-8 pt-3">
+      <div className="text-sm font-semibold tabular-nums text-ink-2">
+        {pad(now.getHours())}:{pad(now.getMinutes())}
       </div>
       <div className="mt-14 text-center">
-        <div className="text-7xl font-light tabular-nums">
+        <div className="text-7xl font-light tabular-nums tracking-[-0.02em]">
           {pad(now.getHours())}:{pad(now.getMinutes())}
         </div>
-        <div className="mt-1 text-xl opacity-90">{longDate(now, lang)}</div>
+        <div className="mt-1 text-xl text-ink-2">{longDate(now, lang)}</div>
       </div>
 
       {/* HearthCare widget */}
-      <button onClick={onOpenWhatsApp} className="mt-10 rounded-3xl bg-white/15 p-4 text-left backdrop-blur">
-        <div className="text-sm font-semibold uppercase tracking-wide opacity-80">🔥 HearthCare</div>
+      <button onClick={onOpenWhatsApp} className="press mt-10 rounded-[28px] bg-white/70 p-4 text-left shadow-[inset_0_0_0_1px_rgb(255_255_255/0.8),0_16px_40px_-20px_rgb(30_39_48/0.25)] backdrop-blur-xl">
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-hearth-ink">
+          <FireIcon size={16} weight="fill" aria-hidden /> HearthCare
+        </div>
         {openSlot ? (
-          <div className="mt-1 text-2xl font-bold">
-            💊 {lang === "zh" ? "现在要吃药" : "Medicine time now"}
-            <div className="text-lg font-normal opacity-90">{openSlot.items.filter((i) => !i.log).map((i) => medName(i.med, lang)).join(" + ")}</div>
+          <div className="mt-2 flex items-start gap-3">
+            <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-hearth-soft text-hearth">
+              <PillIcon size={24} weight="bold" />
+            </span>
+            <div className="text-2xl font-semibold leading-tight">
+              {lang === "zh" ? "现在要吃药" : "Medicine time now"}
+              <div className="text-lg font-normal text-ink-2">{openSlot.items.filter((i) => !i.log).map((i) => medName(i.med, lang)).join(" + ")}</div>
+            </div>
           </div>
         ) : (
-          <div className="mt-1 text-2xl font-bold">
-            ✓ {t("allDone", lang)}
-            {next && (
-              <div className="text-lg font-normal opacity-90">
-                {t("next", lang)}: {next.date !== toDateStr(now) && `${t("tomorrow", lang)} `}
-                {fmtTimeLang(next.time, lang)}
-              </div>
-            )}
+          <div className="mt-2 flex items-start gap-3">
+            <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ok-soft text-ok">
+              <CheckIcon size={24} weight="bold" />
+            </span>
+            <div className="text-2xl font-semibold leading-tight">
+              {t("allDone", lang)}
+              {next && (
+                <div className="text-lg font-normal text-ink-2">
+                  {t("next", lang)}: {next.date !== toDateStr(now) && `${t("tomorrow", lang)} `}
+                  {fmtTimeLang(next.time, lang)}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </button>
 
-      <div className="mt-auto grid grid-cols-4 gap-4 text-center text-sm">
+      <div className="mt-auto grid grid-cols-4 gap-4 rounded-[32px] bg-white/45 p-3 text-center text-sm backdrop-blur-xl">
         <AppIcon label="WhatsApp" onClick={onOpenWhatsApp} badge={openSlot ? 1 : 0}>
           <WaIcon size={60} />
         </AppIcon>
         <AppIcon label={lang === "zh" ? "电话" : "Phone"}>
-          <span className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-ok text-3xl">📞</span>
+          <span className="flex h-[60px] w-[60px] items-center justify-center rounded-[18px] bg-ok text-white">
+            <PhoneIcon size={30} weight="fill" aria-hidden />
+          </span>
         </AppIcon>
         <AppIcon label={lang === "zh" ? "相册" : "Photos"}>
-          <span className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-white text-3xl">🌸</span>
+          <span className="flex h-[60px] w-[60px] items-center justify-center rounded-[18px] bg-white text-[#c27a9a] shadow-hairline">
+            <ImageIcon size={30} weight="fill" aria-hidden />
+          </span>
         </AppIcon>
         <AppIcon label={lang === "zh" ? "家人" : "Family"}>
-          <span className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-sky-500 text-3xl">👨‍👩‍👧</span>
+          <span className="flex h-[60px] w-[60px] items-center justify-center rounded-[18px] bg-[#5a7397] text-white">
+            <UsersThreeIcon size={30} weight="fill" aria-hidden />
+          </span>
         </AppIcon>
       </div>
     </div>
@@ -380,24 +417,20 @@ function HomeScreen({
 
 function AppIcon({ label, children, onClick, badge = 0 }: { label: string; children: React.ReactNode; onClick?: () => void; badge?: number }) {
   return (
-    <button onClick={onClick} className="relative flex flex-col items-center gap-1">
+    <button onClick={onClick} className="press relative flex flex-col items-center gap-1 text-ink">
       {children}
       {badge > 0 && (
-        <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-bad text-sm font-bold">{badge}</span>
+        <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-bad text-sm font-bold text-white shadow-[0_0_0_2px_#fff]">{badge}</span>
       )}
-      <span className="drop-shadow">{label}</span>
+      <span>{label}</span>
     </button>
   );
 }
 
 function WaIcon({ size }: { size: number }) {
   return (
-    <span
-      className="flex shrink-0 items-center justify-center rounded-2xl bg-[#25d366] text-white"
-      style={{ width: size, height: size, fontSize: size * 0.5 }}
-      aria-hidden
-    >
-      💬
+    <span className="flex shrink-0 items-center justify-center rounded-[18px] bg-[#25d366] text-white" style={{ width: size, height: size }} aria-hidden>
+      <WhatsappLogoIcon size={size * 0.58} weight="fill" />
     </span>
   );
 }
@@ -424,32 +457,34 @@ function InCall({
 
   const menu: { k: number; label: string; cls: string }[] =
     call.phase === "reason"
-      ? REASON_KEYS.map((r, i) => ({ k: i + 1, label: SKIP_REASONS[r][lang], cls: "bg-white/15" }))
+      ? REASON_KEYS.map((r, i) => ({ k: i + 1, label: SKIP_REASONS[r][lang], cls: "bg-white/12" }))
       : [
-          { k: 1, label: `${t("taken", lang)}`, cls: "bg-ok" },
-          { k: 2, label: `${t("later", lang)}`, cls: "bg-warn" },
-          { k: 3, label: `${t("skipped", lang)}`, cls: "bg-bad" },
+          { k: 1, label: `${t("taken", lang)}`, cls: "bg-hearth" },
+          { k: 2, label: `${t("later", lang)}`, cls: "bg-white/12" },
+          { k: 3, label: `${t("skipped", lang)}`, cls: "bg-white/12" },
         ];
 
   return (
-    <div className="absolute inset-0 z-30 flex flex-col bg-gradient-to-b from-[#2a1d16] to-[#0f0b09] px-5 pb-8 pt-12">
+    <div className="absolute inset-0 z-30 flex flex-col bg-gradient-to-b from-[#34414d] to-[#161c22] px-5 pb-8 pt-12 text-white">
       <div className="text-center">
-        <div className="text-2xl font-bold">HearthCare</div>
-        <div className="tabular-nums opacity-70">
+        <div className="text-2xl font-semibold">HearthCare</div>
+        <div className="tabular-nums text-white/70">
           {pad(Math.floor(secs / 60))}:{pad(secs % 60)}
         </div>
       </div>
 
-      <div className="mt-5 rounded-3xl bg-white/10 p-4">
-        <div className="mb-1 text-xs uppercase tracking-wide opacity-60">🔊 {lang === "zh" ? "正在说" : "Speaking"}</div>
+      <div className="mt-5 rounded-[28px] bg-white/10 p-4 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)]">
+        <div className="mb-1 flex items-center gap-1.5 text-sm text-white/70">
+          <SpeakerHighIcon size={16} aria-hidden /> {lang === "zh" ? "正在说" : "Speaking"}
+        </div>
         <div className="text-xl leading-relaxed">{call.caption}</div>
       </div>
 
       {call.phase !== "ending" && (
         <div className="mt-5 flex flex-col gap-3">
           {menu.map((m) => (
-            <button key={m.k} onClick={() => onKey(m.k)} className={`flex items-center gap-4 rounded-2xl px-4 py-3.5 text-2xl font-bold ${m.cls}`}>
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/25 text-2xl">{m.k}</span>
+            <button key={m.k} onClick={() => onKey(m.k)} className={`press flex items-center gap-4 rounded-full py-2.5 pl-2.5 pr-5 text-2xl font-semibold ${m.cls}`}>
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/20 text-2xl tabular-nums">{m.k}</span>
               {m.label}
             </button>
           ))}
@@ -457,13 +492,15 @@ function InCall({
       )}
 
       <div className="mt-auto flex items-end justify-between px-6">
-        <button onClick={onRepeat} className="flex flex-col items-center gap-1 text-sm opacity-80">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15 text-2xl">🔁</span>
+        <button onClick={onRepeat} className="press flex flex-col items-center gap-1 text-sm text-white/80">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15">
+            <ArrowsClockwiseIcon size={26} aria-hidden />
+          </span>
           {lang === "zh" ? "再听一次" : "Repeat"}
         </button>
-        <button onClick={onHangUp} className="flex flex-col items-center gap-1 text-sm" aria-label="Hang up">
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-bad text-3xl">
-            <span className="rotate-[135deg]">📞</span>
+        <button onClick={onHangUp} className="press flex flex-col items-center gap-1 text-sm" aria-label="Hang up">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-bad">
+            <PhoneDisconnectIcon size={30} weight="fill" aria-hidden />
           </span>
           {lang === "zh" ? "挂断" : "Hang up"}
         </button>

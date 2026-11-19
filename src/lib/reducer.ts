@@ -3,7 +3,8 @@ import { nowOf } from "./logic";
 import { buildSeed, uid } from "./seed";
 import { toDateStr } from "./time";
 
-const COLORS = ["#b45309", "#be185d", "#047857", "#1d4ed8", "#7c3aed", "#0e7490"];
+// Muted avatar colours that sit well on the slate palette (white initials stay readable).
+const COLORS = ["#5a7397", "#3e7c76", "#7a6ba8", "#a06a4f", "#5f7f4a", "#9a5c7a"];
 
 /** Applies an action to the state. Mutates and returns the same object. */
 export function applyAction(state: HearthState, action: Action): HearthState {
@@ -29,6 +30,12 @@ export function applyAction(state: HearthState, action: Action): HearthState {
       }
       break;
     }
+    case "undoDose":
+      state.doseLogs = state.doseLogs.filter(
+        (l) => !(l.date === action.date && l.time === action.time && action.medIds.includes(l.medId)),
+      );
+      break;
+
     case "snooze":
       state.snoozes.push({ date: action.date, time: action.time, at: nowIso });
       break;

@@ -28,6 +28,20 @@ const STRINGS = {
   onDutyToday: { en: "on duty today", zh: "今天负责照顾你" },
   noted: { en: "Noted. Your family will check in.", zh: "知道了，家人会联系你。" },
   cancel: { en: "Cancel", zh: "取消" },
+  tookThem: { en: "I took them", zh: "我吃了" },
+  tookIt: { en: "I took it", zh: "我吃了" },
+  doneThanks: { en: "Done. Thank you.", zh: "吃好了，谢谢" },
+  undo: { en: "Wrong button? Undo", zh: "按错了？撤销" },
+  dayDone: { en: "All done for today", zh: "今天的药都吃好了" },
+  greetMorning: { en: "Good morning", zh: "早上好" },
+  greetAfternoon: { en: "Good afternoon", zh: "下午好" },
+  greetEvening: { en: "Good evening", zh: "晚上好" },
+  morningShort: { en: "Morning", zh: "早上" },
+  afternoonShort: { en: "Afternoon", zh: "下午" },
+  eveningShort: { en: "Evening", zh: "晚上" },
+  nightShort: { en: "Night", zh: "睡前" },
+  tellMyFamily: { en: "Tell my family", zh: "告诉家人" },
+  callFamily: { en: "Call", zh: "打电话" },
 } as const;
 
 export type StrKey = keyof typeof STRINGS;

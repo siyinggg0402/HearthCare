@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowsClockwiseIcon, CaretRightIcon, UserPlusIcon } from "@phosphor-icons/react";
 import { useHearth } from "@/lib/useHearth";
 import { onDuty } from "@/lib/logic";
 import { addDays, fmtDate, mondayOf, relativeDay, toDateStr } from "@/lib/time";
 import type { FamilyMember, HearthState } from "@/lib/types";
-import { Avatar, btnPrimary, Card, inputCls, SectionTitle, Sheet } from "@/components/ui";
+import { Avatar, btnDark, btnLink, Field, inputCls, optionCls, SectionTitle, Sheet, Tray } from "@/components/ui";
 
 export function RosterTab({ state, me }: { state: HearthState; me: FamilyMember }) {
   const { now, act } = useHearth();
@@ -14,6 +15,7 @@ export function RosterTab({ state, me }: { state: HearthState; me: FamilyMember 
   const days = Array.from({ length: 21 }, (_, i) => addDays(start, i));
   const [swapDate, setSwapDate] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const duty = onDuty(state, today);
 
   // Fairness: shifts and follow-ups over the last 30 days
   const from = addDays(today, -29);
@@ -29,26 +31,32 @@ export function RosterTab({ state, me }: { state: HearthState; me: FamilyMember 
 
   return (
     <div>
-      <Card className="flex items-center gap-3">
-        <Avatar member={onDuty(state, today)} size={44} />
-        <div>
-          <div className="text-xs uppercase tracking-wide text-ink-3">On duty today</div>
-          <div className="text-lg font-semibold">
-            {onDuty(state, today)?.name}
-            {onDuty(state, today)?.id === me.id && " (you)"}
+      <Tray>
+        <section className="flex items-center gap-3.5 rounded-[25px] bg-paper p-[18px] shadow-lift">
+          <Avatar member={duty} size={48} ring />
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[13px] text-ink-3">On duty today</span>
+            <span className="text-xl font-semibold tracking-[-0.01em]">
+              {duty?.name}
+              {duty?.id === me.id && " (you)"}
+            </span>
+            <span className="text-sm leading-relaxed text-ink-2">
+              Gets alerted if {state.patient.callName} doesn&apos;t confirm within {state.escalateAfterMin} minutes
+            </span>
           </div>
-          <div className="text-sm text-ink-2">Gets alerted if {state.patient.callName} doesn&apos;t confirm within {state.escalateAfterMin} min</div>
-        </div>
-      </Card>
+        </section>
+      </Tray>
 
       <SectionTitle
         right={
-          <div className="flex rounded-lg border border-line text-xs">
+          <div className="flex rounded-full bg-[#eef1f4] p-0.5 text-[13px]" role="radiogroup" aria-label="Rotation">
             {(["weekly", "daily"] as const).map((m) => (
               <button
                 key={m}
+                role="radio"
+                aria-checked={state.roster.mode === m}
                 onClick={() => act({ type: "setRoster", order: state.roster.order, mode: m })}
-                className={`px-2.5 py-1 capitalize ${state.roster.mode === m ? "bg-ink text-white" : ""} ${m === "weekly" ? "rounded-l-lg" : "rounded-r-lg"}`}
+                className={`rounded-full px-3 py-1 capitalize transition-colors duration-200 ${state.roster.mode === m ? "bg-paper font-semibold shadow-[0_1px_2px_rgb(30_39_48/0.08)]" : "text-ink-2"}`}
               >
                 {m}
               </button>
@@ -58,80 +66,85 @@ export function RosterTab({ state, me }: { state: HearthState; me: FamilyMember 
       >
         Next 3 weeks
       </SectionTitle>
-      <Card className="!p-0">
-        <ul className="divide-y divide-line">
-          {days.map((d) => {
-            const m = onDuty(state, d);
-            const swapped = !!state.roster.overrides[d];
-            const past = d < today;
-            return (
-              <li key={d}>
-                <button
-                  disabled={past}
-                  onClick={() => setSwapDate(d)}
-                  className={`flex w-full items-center gap-3 px-3 py-2 text-left ${d === today ? "bg-hearth-soft" : ""} ${past ? "opacity-40" : ""}`}
-                >
-                  <span className="w-24 text-sm text-ink-2">{relativeDay(d, today)}</span>
-                  <Avatar member={m} size={26} />
-                  <span className="flex-1 font-medium">{m?.name}</span>
-                  {swapped && <span className="rounded-full bg-cream px-2 py-0.5 text-xs text-ink-2">swapped</span>}
-                  {!past && <span className="text-xs text-ink-3">Swap ›</span>}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </Card>
-
-      <SectionTitle right={<button onClick={() => setAdding(true)} className="text-sm font-semibold text-hearth">+ Invite</button>}>
-        Family · last 30 days
-      </SectionTitle>
-      <Card className="!p-0">
-        <ul className="divide-y divide-line">
-          {state.members.map((m) => (
-            <li key={m.id} className="flex items-center gap-3 px-3 py-2.5">
-              <Avatar member={m} size={34} />
-              <div className="flex-1">
-                <div className="font-medium">
-                  {m.name} {m.id === me.id && <span className="text-ink-3">(you)</span>}
-                </div>
-                <div className="text-xs text-ink-3">{m.relation}</div>
-              </div>
-              <div className="text-right text-xs text-ink-2">
-                <div>
-                  <b className="text-base text-ink">{shiftCounts.get(m.id) ?? 0}</b> days on duty
-                </div>
-                <div>{followUps.get(m.id) ?? 0} follow-ups</div>
-              </div>
+      <ul className="rounded-[22px] bg-paper p-1.5 shadow-soft">
+        {days.map((d) => {
+          const m = onDuty(state, d);
+          const swapped = !!state.roster.overrides[d];
+          const past = d < today;
+          return (
+            <li key={d}>
+              <button
+                disabled={past}
+                onClick={() => setSwapDate(d)}
+                className={`flex w-full items-center gap-3 rounded-[16px] px-3 py-2.5 text-left transition-colors duration-150 ${d === today ? "bg-hearth-soft/70" : "hover:bg-ground"} ${past ? "opacity-45" : ""}`}
+              >
+                <span className={`w-24 text-sm ${d === today ? "font-semibold text-hearth-ink" : "text-ink-2"}`}>{relativeDay(d, today)}</span>
+                <Avatar member={m} size={26} />
+                <span className="flex-1">{m?.name}</span>
+                {swapped && <span className="rounded-full bg-[#f1f3f6] px-2.5 py-0.5 text-xs text-ink-2">Swapped</span>}
+                {!past && <CaretRightIcon size={14} className="text-ink-3" aria-label="Swap" />}
+              </button>
             </li>
-          ))}
-        </ul>
-      </Card>
+          );
+        })}
+      </ul>
+
+      <SectionTitle
+        right={
+          <button onClick={() => setAdding(true)} className={btnLink}>
+            <UserPlusIcon size={14} weight="bold" aria-hidden /> Invite
+          </button>
+        }
+      >
+        Family, last 30 days
+      </SectionTitle>
+      <ul className="rounded-[22px] bg-paper px-4 py-1 shadow-soft">
+        {state.members.map((m, i) => (
+          <li key={m.id} className={`flex items-center gap-3 py-3 ${i < state.members.length - 1 ? "shadow-[inset_0_-1px_0_rgb(30_39_48/0.05)]" : ""}`}>
+            <Avatar member={m} size={36} />
+            <div className="flex-1">
+              <div className="font-medium">
+                {m.name} {m.id === me.id && <span className="text-ink-3">(you)</span>}
+              </div>
+              <div className="text-[13px] text-ink-3">{m.relation}</div>
+            </div>
+            <div className="text-right text-[13px] text-ink-2">
+              <div>
+                <span className="text-base font-semibold tabular-nums text-ink">{shiftCounts.get(m.id) ?? 0}</span> days on duty
+              </div>
+              <div>{followUps.get(m.id) ?? 0} follow-ups</div>
+            </div>
+          </li>
+        ))}
+      </ul>
 
       <Sheet open={!!swapDate} onClose={() => setSwapDate(null)} title={swapDate ? `Who's on duty ${fmtDate(swapDate, { weekday: true })}?` : ""}>
         <div className="flex flex-col gap-2">
-          {state.members.map((m) => (
-            <button
-              key={m.id}
-              onClick={async () => {
-                await act({ type: "setRosterOverride", date: swapDate!, memberId: m.id });
-                setSwapDate(null);
-              }}
-              className="flex items-center gap-3 rounded-xl border border-line p-3 text-left"
-            >
-              <Avatar member={m} size={30} /> <span className="font-medium">{m.name}</span>
-              {swapDate && onDuty(state, swapDate)?.id === m.id && <span className="ml-auto text-xs text-ink-3">current</span>}
-            </button>
-          ))}
+          {state.members.map((m) => {
+            const current = !!swapDate && onDuty(state, swapDate)?.id === m.id;
+            return (
+              <button
+                key={m.id}
+                onClick={async () => {
+                  await act({ type: "setRosterOverride", date: swapDate!, memberId: m.id });
+                  setSwapDate(null);
+                }}
+                className={`${optionCls(current)} items-center`}
+              >
+                <Avatar member={m} size={32} /> <span className="font-semibold">{m.name}</span>
+                {current && <span className="ml-auto text-[13px] text-ink-3">Current</span>}
+              </button>
+            );
+          })}
           {swapDate && state.roster.overrides[swapDate] && (
             <button
               onClick={async () => {
                 await act({ type: "setRosterOverride", date: swapDate, memberId: null });
                 setSwapDate(null);
               }}
-              className="mt-1 text-sm text-ink-2"
+              className="mt-2 flex items-center justify-center gap-1.5 py-2 text-sm font-semibold text-ink-2"
             >
-              Undo swap (back to the usual rotation)
+              <ArrowsClockwiseIcon size={15} aria-hidden /> Undo swap (back to the usual rotation)
             </button>
           )}
         </div>
@@ -149,14 +162,20 @@ function InviteSheet({ open, onClose }: { open: boolean; onClose: () => void }) 
   const [phone, setPhone] = useState("");
   return (
     <Sheet open={open} onClose={onClose} title="Invite a family member">
-      <div className="flex flex-col gap-2">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" className={inputCls} />
-        <input value={relation} onChange={(e) => setRelation(e.target.value)} placeholder="Relation (e.g. Daughter-in-law)" className={inputCls} />
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Mobile number" inputMode="tel" className={inputCls} />
-        <p className="text-xs text-ink-3">Prototype: they&apos;re added straight to the roster. The real app sends a WhatsApp invite link.</p>
+      <div className="flex flex-col gap-3">
+        <Field label="Name">
+          <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
+        </Field>
+        <Field label="Relation" hint="(e.g. Daughter-in-law)">
+          <input value={relation} onChange={(e) => setRelation(e.target.value)} className={inputCls} />
+        </Field>
+        <Field label="Mobile number">
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" className={inputCls} />
+        </Field>
+        <p className="px-1 text-[13px] text-ink-3">Prototype: they&apos;re added straight to the roster. The real app sends a WhatsApp invite link.</p>
         <button
           disabled={!name.trim()}
-          className={btnPrimary}
+          className={`${btnDark} h-[54px]`}
           onClick={async () => {
             await act({ type: "addMember", member: { name: name.trim(), relation: relation.trim() || "Family", phone: phone.trim() } });
             setName("");

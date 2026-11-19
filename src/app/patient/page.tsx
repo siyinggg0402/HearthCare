@@ -19,18 +19,17 @@ function PatientInner() {
   return (
     <>
       {!embed && (
-        <div className="no-print flex justify-center gap-1 bg-ink px-2 py-1.5 text-xs text-white">
-          <span className="mr-2 opacity-60">Patient view:</span>
-          <Link href="/patient" className={`rounded px-2 py-0.5 ${mode === "app" ? "bg-white/20" : ""}`}>
+        <nav className="no-print mx-auto mt-3 flex w-max items-center gap-1 rounded-full bg-paper/80 p-1 text-sm shadow-float backdrop-blur-xl">
+          <Link href="/patient" className={`rounded-full px-3 py-1.5 font-semibold ${mode === "app" ? "bg-hearth-soft text-hearth-ink" : "text-ink-2"}`}>
             App
           </Link>
-          <Link href="/patient?mode=whatsapp" className={`rounded px-2 py-0.5 ${mode === "whatsapp" ? "bg-white/20" : ""}`}>
-            WhatsApp (simulated)
+          <Link href="/patient?mode=whatsapp" className={`rounded-full px-3 py-1.5 font-semibold ${mode === "whatsapp" ? "bg-hearth-soft text-hearth-ink" : "text-ink-2"}`}>
+            WhatsApp
           </Link>
-          <Link href="/" className="ml-2 rounded px-2 py-0.5 opacity-60">
+          <Link href="/" className="rounded-full px-3 py-1.5 text-ink-2">
             Home
           </Link>
-        </div>
+        </nav>
       )}
       {mode === "whatsapp" ? <PatientWhatsApp state={state} /> : <PatientApp state={state} />}
       {!embed && <DemoClock />}

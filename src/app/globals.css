@@ -1,43 +1,166 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cream: #fbf6ef;
+  /* Neutrals: cool slate, airy off-white ground */
+  --color-ground: #f5f7f9;
   --color-paper: #ffffff;
-  --color-ink: #2b211a;
-  --color-ink-2: #5c4f45;
-  --color-ink-3: #8a7c70;
-  --color-line: #ece2d6;
-  --color-hearth: #c2410c;
-  --color-hearth-soft: #fde9dc;
-  --color-ok: #15803d;
-  --color-ok-soft: #e3f4e8;
-  --color-warn: #b45309;
-  --color-warn-soft: #fdf0d8;
-  --color-bad: #b91c1c;
-  --color-bad-soft: #fde4e4;
+  --color-ink: #1e2730;
+  --color-ink-2: #56606b;
+  --color-ink-3: #626c77; /* still 4.8:1 on ground: OK for small text */
+  --color-line: #e6e9ed;
+  --color-tray: rgb(30 39 48 / 0.035);
+
+  /* One brand colour */
+  --color-hearth: #c2553a;
+  --color-hearth-ink: #a9462d; /* brand text on light backgrounds */
+  --color-hearth-soft: #fbeee9;
+
+  /* Status only, never decoration */
+  --color-ok: #1f7a45;
+  --color-ok-soft: #ebf6ef;
+  --color-ok-mark: #9fd3b2;
+  --color-warn: #9a5b0c;
+  --color-warn-ink: #6e4511;
+  --color-warn-soft: #fbf3e6;
+  --color-warn-mark: #f2cc8f;
+  --color-bad: #b3362b;
+  --color-bad-soft: #fceeec;
+  --color-bad-mark: #d9776c;
+
+  /* WhatsApp simulation */
   --color-wa-bg: #efe7dd;
   --color-wa-green: #075e54;
   --color-wa-out: #d9fdd3;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", "Noto Sans SC", sans-serif;
+
+  --font-sans: var(--font-atkinson), var(--font-noto-sc), ui-sans-serif, system-ui, -apple-system, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+
+  /* Very diffused, slate-tinted shadows */
+  --shadow-soft: inset 0 0 0 1px rgb(30 39 48 / 0.04), 0 12px 32px -20px rgb(30 39 48 / 0.14);
+  --shadow-lift: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(30 39 48 / 0.03), 0 18px 40px -18px rgb(30 39 48 / 0.12);
+  --shadow-float: inset 0 0 0 1px rgb(30 39 48 / 0.06), 0 16px 36px -14px rgb(30 39 48 / 0.22);
+  --shadow-hairline: inset 0 0 0 1px rgb(30 39 48 / 0.06);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 html,
 body {
-  background: var(--color-cream);
+  background: var(--color-ground);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-image: radial-gradient(120% 50% at 50% -5%, #ffffff 0%, var(--color-ground) 60%);
+  background-attachment: fixed;
 }
 
 button {
   cursor: pointer;
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-hearth);
+  outline-offset: 2px;
+}
+
+/* Press feedback for anything tappable */
+.press {
+  transition: transform 160ms var(--ease-out);
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+/* State change: soft fade-up */
+.enter {
+  animation: hc-enter 420ms var(--ease-drawer) both;
+}
+@keyframes hc-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* Alert drops in once (keyed by slot so a poll doesn't replay it) */
+.drop-in {
+  animation: hc-drop 260ms var(--ease-out) both;
+}
+@keyframes hc-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Check mark draws itself */
+.draw path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: hc-draw 380ms 160ms var(--ease-out) forwards;
+}
+@keyframes hc-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Skeleton shimmer */
+.skeleton {
+  background: linear-gradient(90deg, #eef1f4 0%, #f6f8fa 50%, #eef1f4 100%);
+  background-size: 200% 100%;
+  animation: hc-shimmer 1.4s linear infinite;
+}
+@keyframes hc-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .drop-in {
+    animation: hc-fade 200ms ease both;
+  }
+  .draw path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .skeleton {
+    animation: none;
+  }
+  .press:active {
+    transform: none;
+  }
+  @keyframes hc-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
 @media print {
   html,
   body {
     background: #fff;
+    background-image: none;
   }
   .no-print {
     display: none !important;

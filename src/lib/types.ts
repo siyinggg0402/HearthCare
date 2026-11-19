@@ -34,6 +34,14 @@ export interface Medication {
   times: string[]; // ["08:00", "20:00"]
   stock: { count: number; asOf: string }; // pills on hand at a given date
   active: boolean;
+  /** What the pill looks like, so the patient can recognise it. */
+  appearance?: PillAppearance;
+}
+
+export interface PillAppearance {
+  shape: "round" | "oval" | "capsule";
+  color: string;
+  color2?: string; // second half of a capsule
 }
 
 export interface FamilyMember {
@@ -140,6 +148,7 @@ export interface HearthState {
 
 export type Action =
   | { type: "confirmDose"; date: string; time: string; medIds: string[]; status: DoseStatus; by: string; reason?: string; late?: boolean }
+  | { type: "undoDose"; date: string; time: string; medIds: string[] }
   | { type: "snooze"; date: string; time: string }
   | { type: "logCall"; date: string; time: string; result: "answered" | "declined" }
   | { type: "escalationOutcome"; date: string; time: string; memberId: string; outcome: EscalationOutcome; note?: string }
