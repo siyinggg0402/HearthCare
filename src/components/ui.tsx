@@ -2,7 +2,7 @@
 
 import { Drawer } from "vaul";
 import { CheckIcon, ClockIcon, WarningCircleIcon, XIcon, type Icon } from "@phosphor-icons/react";
-import type { FamilyMember, Medication } from "@/lib/types";
+import type { FamilyMember, Medication, PillAppearance } from "@/lib/types";
 import type { ItemState, SlotState } from "@/lib/logic";
 
 export function Avatar({ member, size = 32, ring = false }: { member?: FamilyMember; size?: number; ring?: boolean }) {
@@ -113,8 +113,8 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 }
 
 /** Small drawing of the pill so the patient can recognise it by sight. */
-export function PillSwatch({ med, size = 56 }: { med: Medication; size?: number }) {
-  const a = med.appearance ?? { color: "#ffffff", shape: "round" as const };
+export function PillSwatch({ med, appearance, size = 56 }: { med?: Medication; appearance?: PillAppearance; size?: number }) {
+  const a = appearance ?? med?.appearance ?? { color: "#ffffff", shape: "round" as const };
   const shape = {
     round: { w: size * 0.4, h: size * 0.4, r: 999 },
     oval: { w: size * 0.58, h: size * 0.28, r: 999 },

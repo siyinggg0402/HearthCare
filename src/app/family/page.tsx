@@ -8,16 +8,17 @@ import { onDuty, openEscalations } from "@/lib/logic";
 import { toDateStr } from "@/lib/time";
 import { Avatar, Loading } from "@/components/ui";
 import { DemoClock } from "@/components/DemoClock";
+import { CalendarBlankIcon, HouseIcon, PillIcon, StethoscopeIcon } from "@phosphor-icons/react";
 import { TodayTab } from "@/components/family/TodayTab";
 import { RosterTab } from "@/components/family/RosterTab";
 import { MedsTab } from "@/components/family/MedsTab";
 import { VisitTab } from "@/components/family/VisitTab";
 
 const TABS = [
-  { key: "today", label: "Today", icon: "🏠" },
-  { key: "roster", label: "Roster", icon: "🗓" },
-  { key: "meds", label: "Medicines", icon: "💊" },
-  { key: "visit", label: "Doctor visit", icon: "🩺" },
+  { key: "today", label: "Today", Icon: HouseIcon },
+  { key: "roster", label: "Roster", Icon: CalendarBlankIcon },
+  { key: "meds", label: "Medicines", Icon: PillIcon },
+  { key: "visit", label: "Visit", Icon: StethoscopeIcon },
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
 
@@ -38,18 +39,23 @@ function FamilyInner() {
   const myAlerts = openEscalations(state, now).filter((s) => s.escalation?.assignee.id === me.id).length;
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md pb-24">
-      <header className="sticky top-0 z-20 border-b border-line bg-ground/95 px-4 pb-3 pt-4 backdrop-blur">
+    <div className="mx-auto min-h-dvh max-w-md pb-32">
+      <header className="px-5 pb-1 pt-6">
         <div className="flex items-center justify-between">
-          <div>
-            <div className="text-xs uppercase tracking-wide text-ink-3">{embed ? "HearthCare" : <Link href="/">HearthCare</Link>} · Family</div>
-            <div className="text-xl font-bold">
-              {state.patient.callName}&apos;s care <span className="text-base font-normal text-ink-2">{state.patient.nameZh}</span>
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[13px] text-ink-3">{embed ? "HearthCare" : <Link href="/">HearthCare</Link>}</span>
+            <h1 className="text-[25px] font-semibold leading-tight tracking-[-0.015em]">
+              {state.patient.callName}&apos;s care <span className="text-base font-normal text-ink-3">{state.patient.nameZh}</span>
+            </h1>
           </div>
-          <label className="flex items-center gap-2 rounded-full border border-line bg-paper py-1 pl-1 pr-2 text-sm">
-            <Avatar member={me} size={28} />
-            <select value={me.id} onChange={(e) => (asOverride ? setAsOverride(e.target.value) : setMemberId(e.target.value))} className="bg-transparent font-medium outline-none" aria-label="Viewing as">
+          <label className="press relative cursor-pointer" title="Switch family member">
+            <Avatar member={me} size={42} ring={duty?.id === me.id} />
+            <select
+              value={me.id}
+              onChange={(e) => (asOverride ? setAsOverride(e.target.value) : setMemberId(e.target.value))}
+              className="absolute inset-0 cursor-pointer opacity-0"
+              aria-label={`Viewing as ${me.name}. Switch family member`}
+            >
               {state.members.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name}
@@ -59,35 +65,53 @@ function FamilyInner() {
           </label>
         </div>
         {duty && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-ink-2">
-            <Avatar member={duty} size={20} />
-            {duty.id === me.id ? <b className="text-hearth">You&apos;re on duty today</b> : <span>{duty.name} is on duty today</span>}
+          <div className="mt-2.5 flex items-center gap-2 text-sm text-ink-2">
+            {duty.id === me.id ? (
+              <span className="rounded-full bg-hearth-soft px-2.5 py-1 text-[12.5px] font-semibold text-hearth-ink">You&apos;re on duty today</span>
+            ) : (
+              <>
+                <Avatar member={duty} size={20} />
+                <span>{duty.name} is on duty today</span>
+              </>
+            )}
           </div>
         )}
-        {error && <div className="mt-2 rounded-lg bg-bad-soft px-2 py-1 text-xs text-bad">Can&apos;t reach server: {error}</div>}
+        {error && <div className="mt-3 rounded-full bg-bad-soft px-3 py-1.5 text-xs text-bad">Can&apos;t reach the server: {error}</div>}
       </header>
 
-      <main className="px-4 pt-2">
+      <main className="px-4 pt-4">
         {tab === "today" && <TodayTab state={state} me={me} />}
         {tab === "roster" && <RosterTab state={state} me={me} />}
         {tab === "meds" && <MedsTab state={state} />}
         {tab === "visit" && <VisitTab state={state} me={me} />}
       </main>
 
-      <nav className="fixed bottom-0 left-1/2 z-20 grid w-full max-w-md -translate-x-1/2 grid-cols-4 border-t border-line bg-paper pb-[env(safe-area-inset-bottom)]">
-        {TABS.map((t) => (
-          <button key={t.key} onClick={() => setTab(t.key)} className={`relative flex flex-col items-center gap-0.5 py-2 text-xs ${tab === t.key ? "font-semibold text-hearth" : "text-ink-3"}`}>
-            <span className="text-lg" aria-hidden>
-              {t.icon}
-            </span>
-            {t.label}
-            {t.key === "today" && myAlerts > 0 && (
-              <span className="absolute right-[30%] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-bad px-1 text-[10px] font-bold text-white">
-                {myAlerts}
-              </span>
-            )}
-          </button>
-        ))}
+      <nav
+        aria-label="Main"
+        className="fixed bottom-[max(18px,env(safe-area-inset-bottom))] left-1/2 z-20 grid h-16 w-[calc(100%-32px)] max-w-[calc(28rem-32px)] -translate-x-1/2 grid-cols-4 rounded-full bg-paper/80 p-1.5 shadow-float backdrop-blur-xl"
+      >
+        {TABS.map((t) => {
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              aria-current={active ? "page" : undefined}
+              className={`relative flex flex-col items-center justify-center gap-0.5 rounded-full text-[11.5px] ${active ? "bg-hearth-soft font-semibold text-hearth-ink" : "text-ink-3"}`}
+            >
+              <t.Icon size={21} weight={active ? "bold" : "regular"} aria-hidden />
+              {t.label}
+              {t.key === "today" && myAlerts > 0 && (
+                <span
+                  aria-label={`${myAlerts} alert${myAlerts === 1 ? "" : "s"}`}
+                  className="absolute right-3 top-0.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-bad px-1 text-[10.5px] font-bold text-white shadow-[0_0_0_2px_#fff]"
+                >
+                  {myAlerts}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </nav>
       {!embed && <DemoClock />}
     </div>
