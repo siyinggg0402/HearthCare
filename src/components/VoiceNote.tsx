@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/lib/types";
 import { t } from "@/lib/i18n";
+import { MicrophoneIcon, PaperPlaneRightIcon, StopIcon } from "@phosphor-icons/react";
 
 // Minimal typing for the browser Web Speech API (Chrome/Safari prefix it as webkit).
 interface SpeechRec {
@@ -76,7 +77,7 @@ export function VoiceNotePanel({
   const [usedVoice, setUsedVoice] = useState(false);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="enter flex flex-col gap-4">
       {v.supported && (
         <button
           onClick={() => {
@@ -86,25 +87,30 @@ export function VoiceNotePanel({
               v.start();
             }
           }}
-          className={`flex h-36 w-full flex-col items-center justify-center gap-2 rounded-3xl text-2xl font-semibold text-white ${
-            v.listening ? "animate-pulse bg-bad" : "bg-hearth"
+          className={`press flex h-40 w-full flex-col items-center justify-center gap-3 rounded-[32px] text-[23px] font-semibold transition-colors duration-200 ${
+            v.listening ? "bg-bad-soft text-bad shadow-[inset_0_0_0_1.5px_rgb(179_54_43/0.25)]" : "bg-paper text-ink shadow-lift"
           }`}
         >
-          <span className="text-5xl" aria-hidden>
-            🎤
+          <span
+            aria-hidden
+            className={`flex h-[72px] w-[72px] items-center justify-center rounded-full ${v.listening ? "animate-pulse bg-bad text-white" : "bg-hearth text-white"}`}
+          >
+            {v.listening ? <StopIcon size={32} weight="fill" /> : <MicrophoneIcon size={34} weight="bold" />}
           </span>
           {v.listening ? t("recording", lang) : t("tellFamily", lang)}
         </button>
       )}
-      <textarea
-        value={v.text}
-        onChange={(e) => v.setText(e.target.value)}
-        placeholder={t("typeInstead", lang)}
-        rows={3}
-        className="w-full rounded-2xl border-2 border-line bg-paper p-3 text-xl outline-none focus:border-hearth"
-      />
+      <label className="flex flex-col gap-2">
+        <span className="px-2 text-lg font-semibold">{t("typeInstead", lang)}</span>
+        <textarea
+          value={v.text}
+          onChange={(e) => v.setText(e.target.value)}
+          rows={3}
+          className="w-full rounded-[24px] bg-paper p-4 text-xl shadow-soft outline-none focus:shadow-[inset_0_0_0_1.5px_var(--color-hearth),0_0_0_4px_rgb(194_85_58/0.14)]"
+        />
+      </label>
       <div className="grid grid-cols-2 gap-3">
-        <button onClick={onCancel} className="rounded-2xl border-2 border-line bg-paper py-4 text-xl font-semibold">
+        <button onClick={onCancel} className="press h-16 rounded-full bg-[#f3f5f7] text-xl font-semibold shadow-hairline">
           {t("cancel", lang)}
         </button>
         <button
@@ -113,8 +119,9 @@ export function VoiceNotePanel({
             v.stop();
             onSend(v.text.trim(), usedVoice ? "voice" : "typed");
           }}
-          className="rounded-2xl bg-ok py-4 text-xl font-semibold text-white disabled:opacity-40"
+          className="press flex h-16 items-center justify-center gap-2 rounded-full bg-hearth text-xl font-semibold text-white disabled:opacity-40"
         >
+          <PaperPlaneRightIcon size={22} weight="bold" aria-hidden />
           {t("send", lang)}
         </button>
       </div>

@@ -8,6 +8,7 @@ import { addMinutes, toDateStr, toTimeStr } from "@/lib/time";
 import { useVoiceNote } from "@/components/VoiceNote";
 import { openMeds, REASON_KEYS, slotTitleKey } from "./shared";
 import type { HearthState, Lang } from "@/lib/types";
+import { CaretLeftIcon, FireIcon, MicrophoneIcon, PaperPlaneRightIcon, SealCheckIcon } from "@phosphor-icons/react";
 
 interface Msg {
   id: string;
@@ -54,9 +55,9 @@ export function PatientWhatsApp({ state, onBack, fill = false }: { state: Hearth
       sub: lang !== "en" ? `${t(slotTitleKey(s), "en")}: ${s.items.map((i) => i.med.name).join(" + ")}. Taken?` : undefined,
       buttons: withButtons
         ? [
-            { label: `✓ ${t("taken", lang)}`, onClick: () => confirm(s, "taken", openMeds(s).map((m) => m.id)) },
-            { label: `⏰ ${t("later", lang)}`, onClick: () => act({ type: "snooze", date: s.date, time: s.time }) },
-            { label: `✗ ${t("skipped", lang)}`, onClick: () => setFlow({ step: "reason", slot: s }) },
+            { label: t("taken", lang), onClick: () => confirm(s, "taken", openMeds(s).map((m) => m.id)) },
+            { label: t("later", lang), onClick: () => act({ type: "snooze", date: s.date, time: s.time }) },
+            { label: t("skipped", lang), onClick: () => setFlow({ step: "reason", slot: s }) },
           ]
         : undefined,
     });
@@ -68,7 +69,7 @@ export function PatientWhatsApp({ state, onBack, fill = false }: { state: Hearth
     msgs.push(reminder(s.scheduled, `r-${s.time}`, isActive && !remindedAgain));
     snoozes.forEach((z, i) => {
       const zAt = new Date(z.at);
-      msgs.push({ id: `z-${s.time}-${i}`, at: zAt, from: "me", text: `⏰ ${t("later", lang)}` });
+      msgs.push({ id: `z-${s.time}-${i}`, at: zAt, from: "me", text: t("later", lang) });
       msgs.push({ id: `zr-${s.time}-${i}`, at: zAt, from: "bot", ...L("remindAgain") });
     });
     if (remindedAgain) msgs.push(reminder(lastRemindAt, `rr-${s.time}`, isActive));
@@ -85,11 +86,11 @@ export function PatientWhatsApp({ state, onBack, fill = false }: { state: Hearth
       const logAt = new Date(log.at);
       if (log.by === "patient") {
         if (log.status === "taken") {
-          msgs.push({ id: `a-${k}`, at: logAt, from: "me", text: `✓ ${t("taken", lang)}` });
+          msgs.push({ id: `a-${k}`, at: logAt, from: "me", text: t("taken", lang) });
           msgs.push({ id: `ab-${k}`, at: logAt, from: "bot", ...L("thanks") });
         } else {
           const reason = log.reason && SKIP_REASONS[log.reason] ? SKIP_REASONS[log.reason][lang] : log.reason;
-          msgs.push({ id: `a-${k}`, at: logAt, from: "me", text: `✗ ${t("skipped", lang)}：${medsList(items)}${reason ? `（${reason}）` : ""}` });
+          msgs.push({ id: `a-${k}`, at: logAt, from: "me", text: `${t("skipped", lang)}：${medsList(items)}${reason ? `（${reason}）` : ""}` });
           msgs.push({ id: `ab-${k}`, at: logAt, from: "bot", ...L("noted") });
         }
       } else {
@@ -179,13 +180,13 @@ export function PatientWhatsApp({ state, onBack, fill = false }: { state: Hearth
     <div className={`mx-auto flex ${fill ? "h-full" : "h-dvh"} max-w-md flex-col bg-wa-bg`}>
       <header className="flex items-center gap-3 bg-wa-green px-4 py-3 text-white">
         {onBack && (
-          <button onClick={onBack} className="-ml-2 px-1 text-3xl leading-none" aria-label="Back">
-            ‹
+          <button onClick={onBack} className="-ml-2 px-1" aria-label="Back">
+            <CaretLeftIcon size={26} weight="bold" aria-hidden />
           </button>
         )}
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl">🔥</div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-hearth"><FireIcon size={22} weight="fill" aria-hidden /></div>
         <div>
-          <div className="font-semibold">HearthCare ✓</div>
+          <div className="flex items-center gap-1 font-semibold">HearthCare <SealCheckIcon size={16} weight="fill" aria-label="Verified business" /></div>
           <div className="text-xs opacity-80">{lang === "zh" ? "企业账号" : "Business account"}</div>
         </div>
       </header>
@@ -214,18 +215,18 @@ export function PatientWhatsApp({ state, onBack, fill = false }: { state: Hearth
           className="flex-1 rounded-full bg-white px-4 py-3 text-base outline-none"
         />
         {draft.trim() && !voice.listening ? (
-          <button onClick={() => send(voice.text ? "voice" : "typed")} className="h-12 w-12 rounded-full bg-wa-green text-white" aria-label="Send">
-            ➤
+          <button onClick={() => send(voice.text ? "voice" : "typed")} className="press flex h-12 w-12 items-center justify-center rounded-full bg-wa-green text-white" aria-label="Send">
+            <PaperPlaneRightIcon size={22} weight="fill" aria-hidden />
           </button>
         ) : (
           <button
             onClick={() => (voice.listening ? voice.stop() : voice.start())}
             disabled={!voice.supported}
-            className={`h-12 w-12 rounded-full text-white disabled:opacity-40 ${voice.listening ? "animate-pulse bg-bad" : "bg-wa-green"}`}
+            className={`press flex h-12 w-12 items-center justify-center rounded-full text-white disabled:opacity-40 ${voice.listening ? "animate-pulse bg-bad" : "bg-wa-green"}`}
             aria-label={voice.listening ? "Stop recording" : "Record voice note"}
             title={voice.supported ? "" : "Voice not supported in this browser, type instead"}
           >
-            🎤
+            <MicrophoneIcon size={22} weight="fill" aria-hidden />
           </button>
         )}
       </div>
@@ -238,9 +239,9 @@ function Bubble({ m, lang }: { m: Msg; lang: Lang }) {
   return (
     <div className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
       <div className={`max-w-[85%] rounded-xl px-3 py-2 shadow-sm ${mine ? "rounded-tr-sm bg-wa-out" : "rounded-tl-sm bg-white"}`}>
-        {m.voice && <div className="mb-1 text-xs text-ink-3">🎤 {lang === "zh" ? "语音（已转文字）" : "Voice note (transcribed)"}</div>}
+        {m.voice && <div className="mb-1 flex items-center gap-1 text-xs text-ink-3"><MicrophoneIcon size={12} aria-hidden /> {lang === "zh" ? "语音（已转文字）" : "Voice note (transcribed)"}</div>}
         <div className="text-[17px] leading-snug">{m.text}</div>
-        {m.sub && <div className="mt-0.5 text-xs italic text-ink-3">{m.sub}</div>}
+        {m.sub && <div className="mt-0.5 text-sm text-ink-2">{m.sub}</div>}
         <div className="mt-0.5 text-right text-[10px] text-ink-3">{toTimeStr(m.at)}</div>
       </div>
       {m.buttons && (
