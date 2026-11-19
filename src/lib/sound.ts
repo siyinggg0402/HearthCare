@@ -49,14 +49,35 @@ export function playRing() {
   navigator.vibrate?.([400, 200, 400]);
 }
 
+// Warm, natural voices first (best first). Matched by name prefix, so "Ava" also hits "Ava (Premium)".
+const PREFERRED: Record<"en" | "zh", string[]> = {
+  en: ["Ava", "Zoe", "Serena", "Kate", "Google UK English Female", "Samantha", "Karen", "Moira", "Google US English", "Microsoft Aria", "Microsoft Jenny"],
+  zh: ["Lilian", "Lili", "Yue", "Tingting", "Google 普通话", "Microsoft Xiaoxiao", "Meijia"],
+};
+// macOS novelty and robotic "Eloquence" voices that sound harsh on a reminder call.
+const AVOID = /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Wobble|Fred|Good News|Jester|Junior|Organ|Superstar|Ralph|Trinoids|Whisper|Zarvox|Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley)\b/i;
+
+function scoreVoice(v: SpeechSynthesisVoice, lang: "en" | "zh"): number {
+  const code = v.lang.replace("_", "-").toLowerCase();
+  const langOk = lang === "zh" ? code.startsWith("zh-cn") || code.startsWith("cmn") || code === "zh" : code.startsWith("en");
+  if (!langOk || AVOID.test(v.name)) return -1;
+  let s = 1;
+  const rank = PREFERRED[lang].findIndex((p) => v.name.startsWith(p));
+  if (rank >= 0) s += 100 - rank * 5;
+  if (/premium|enhanced|natural|neural/i.test(v.name)) s += 50;
+  if (lang === "en" && /en-(sg|gb)/.test(code)) s += 3;
+  return s;
+}
+
 function pickVoice(lang: "en" | "zh"): SpeechSynthesisVoice | undefined {
   const voices = window.speechSynthesis?.getVoices() ?? [];
-  const want = lang === "zh" ? ["zh-CN", "zh_CN", "cmn", "zh"] : ["en-SG", "en-GB", "en-US", "en"];
-  for (const w of want) {
-    const v = voices.find((x) => x.lang.replace("_", "-").toLowerCase().startsWith(w.toLowerCase()));
-    if (v) return v;
+  let best: SpeechSynthesisVoice | undefined;
+  let bestScore = 0;
+  for (const v of voices) {
+    const s = scoreVoice(v, lang);
+    if (s > bestScore) [best, bestScore] = [v, s];
   }
-  return undefined;
+  return best;
 }
 
 /** Speaks text slowly and clearly. Resolves when finished (or immediately if TTS is unavailable). */
